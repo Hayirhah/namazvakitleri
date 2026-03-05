@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Namaz Vakitleri</title>
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Namaz Vakitleri&quot;,&quot;short_name&quot;:&quot;Namaz&quot;,&quot;start_url&quot;:&quot;./namaz-vakitleri.html&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0c1220&quot;,&quot;theme_color&quot;:&quot;#c9a84c&quot;}">
+<meta name="theme-color" content="#0c1220">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Namaz Vakitleri">
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -344,6 +349,34 @@
   footer { text-align: center; padding-top: 3rem; color: var(--muted); font-size: 0.75rem; letter-spacing: 1px; animation: fadeUp 0.8s 0.4s ease both; }
   footer a { color: var(--accent); text-decoration: none; }
 
+  /* BANNERS */
+  .banner {
+    border-radius: 14px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.2rem;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    animation: fadeUp 0.5s ease both;
+    line-height: 1.5;
+  }
+  .banner-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.05rem; }
+  .banner-body { flex: 1; }
+  .banner-title { font-weight: 600; margin-bottom: 0.2rem; }
+  .banner-desc { color: var(--muted); font-size: 0.82rem; }
+  .banner.warn {
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--accent2);
+  }
+  .banner.offline {
+    background: rgba(30,90,160,0.15);
+    border: 1px solid rgba(30,90,160,0.35);
+    color: #7ab3e0;
+  }
+  .banner.offline .banner-desc { color: #5a90bb; }
+
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: none; } }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
@@ -388,6 +421,8 @@
     </div>
     <div id="cacheBadge" class="cache-badge" style="display:none"></div>
   </div>
+
+  <div id="bannerArea"></div>
 
   <div class="date-row">
     <div class="date-gregorian" id="tarihMiladi">—</div>
@@ -713,27 +748,99 @@ function renderCalendar(data) {
   }, 300);
 }
 
+/* ─── BANNERS ─── */
+function showBanner(type, title, desc) {
+  document.getElementById('bannerArea').innerHTML = `
+    <div class="banner ${type}">
+      <div class="banner-icon">${type === 'warn' ? '🌙' : '📶'}</div>
+      <div class="banner-body">
+        <div class="banner-title">${title}</div>
+        <div class="banner-desc">${desc}</div>
+      </div>
+    </div>`;
+}
+
+function clearBanner() {
+  document.getElementById('bannerArea').innerHTML = '';
+}
+
 /* ─── BOOT ─── */
 async function boot() {
-  const cached = loadCache();
+  // Service Worker kaydı
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+
+  const isOnline = navigator.onLine;
+  const cached   = loadCache();
+  const rawCache = getCacheRaw(); // ay değişse bile eski veri burada
 
   if (cached) {
+    // Cache geçerli (aynı ay) → göster
+    clearBanner();
     await fetchAndRender(cached.ilceId, cached.ilceAdi, cached.sehirAdi, cached.ulkeAdi, true, cached.data);
 
-    try {
-      const fresh = await fetchJSON(`${API}/vakitler/${cached.ilceId}`);
-      saveCache(cached.ilceId, cached.ilceAdi, cached.sehirAdi, cached.ulkeAdi, fresh);
-      allVakitler = fresh;
-      renderCalendar(fresh);
-      setBadge('Veriler güncellendi · ' + new Date().toLocaleDateString('tr-TR'));
-    } catch(e) {
+    // Arka planda güncelle
+    if (isOnline) {
+      try {
+        const fresh = await fetchJSON(`${API}/vakitler/${cached.ilceId}`);
+        saveCache(cached.ilceId, cached.ilceAdi, cached.sehirAdi, cached.ulkeAdi, fresh);
+        allVakitler = fresh;
+        renderCalendar(fresh);
+        setBadge('Veriler güncellendi · ' + new Date().toLocaleDateString('tr-TR'));
+      } catch(e) {}
+    } else {
+      setBadge('Önbellekten yüklendi (çevrimdışı)', true);
     }
+
+  } else if (rawCache && !isOnline) {
+    // Cache süresi dolmuş (ay değişti) AMA internet yok → eski veriyle göster + uyar
+    const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+    const now = new Date();
+    showBanner('warn',
+      `${months[now.getMonth()]} ayı verisi henüz yüklenmedi`,
+      `İnternet bağlantısı olmadığı için ${months[rawCache.savedMonth]} ayına ait eski veriler gösteriliyor. İnternet bağlandığında sayfa otomatik güncellenecek.`
+    );
+    await fetchAndRender(rawCache.ilceId, rawCache.ilceAdi, rawCache.sehirAdi, rawCache.ulkeAdi, true, rawCache.data);
+    setBadge(`Eski veri: ${months[rawCache.savedMonth]} ${rawCache.savedYear}`, true);
+
+    // İnternet gelince otomatik yenile
+    window.addEventListener('online', async () => {
+      clearBanner();
+      try {
+        const fresh = await fetchJSON(`${API}/vakitler/${rawCache.ilceId}`);
+        saveCache(rawCache.ilceId, rawCache.ilceAdi, rawCache.sehirAdi, rawCache.ulkeAdi, fresh);
+        allVakitler = fresh;
+        renderPrayerCards(fresh);
+        renderCalendar(fresh);
+        startCountdown(fresh);
+        setBadge('Veriler güncellendi · ' + new Date().toLocaleDateString('tr-TR'));
+      } catch(e) {}
+    }, { once: true });
+
+  } else if (rawCache && isOnline) {
+    // Ay değişti ve internet var → yeni veri çek
+    await fetchAndRender(rawCache.ilceId, rawCache.ilceAdi, rawCache.sehirAdi, rawCache.ulkeAdi);
+    document.getElementById('locSelects').classList.add('hidden');
+
   } else {
+    // Hiç cache yok → konum seçtir
     document.getElementById('prayerGrid').innerHTML = `<div class="loading"><div class="spinner"></div><div class="loading-text">Konum seçiniz</div></div>`;
     document.getElementById('calendarWrap').innerHTML = `<div class="loading" style="padding:2rem"><div class="loading-text" style="font-size:0.8rem">Konum bekleniyor...</div></div>`;
     document.getElementById('locSelects').classList.remove('hidden');
     await loadUlkeler();
   }
+
+  // Online/offline durum değişimlerini dinle
+  window.addEventListener('offline', () => {
+    if (!document.getElementById('bannerArea').innerHTML) {
+      showBanner('offline', 'Çevrimdışı', 'İnternet bağlantısı kesildi. Önbellekteki verilerle çalışılıyor.');
+    }
+  });
+  window.addEventListener('online', () => {
+    clearBanner();
+    setBadge('Bağlantı sağlandı · ' + new Date().toLocaleTimeString('tr-TR'));
+  });
 }
 
 boot();
