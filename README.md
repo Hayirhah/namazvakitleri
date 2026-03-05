@@ -1,1 +1,1 @@
-http://namazvakitleri.github.io/
+https://hayirhah.github.io/namazvakitleri
