@@ -15,13 +15,9 @@
     --accent2: #e8c97a;
     --text: #e8e0d0;
     --muted: #7a8fa6;
-    --active: #c9a84c;
     --active-bg: rgba(201,168,76,0.12);
-    --moon: #c9a84c;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   body {
     font-family: 'Outfit', sans-serif;
     background: var(--bg);
@@ -31,9 +27,7 @@
   }
 
   /* BACKGROUND */
-  .bg-art {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  }
+  .bg-art { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
   .bg-art::before {
     content: '';
     position: absolute;
@@ -74,11 +68,7 @@
   }
 
   /* HEADER */
-  header {
-    text-align: center;
-    padding: 2.5rem 0 2rem;
-    animation: fadeDown 0.8s ease both;
-  }
+  header { text-align: center; padding: 2.5rem 0 2rem; animation: fadeDown 0.8s ease both; }
   .arabic-title {
     font-family: 'Amiri', serif;
     font-size: clamp(2rem, 6vw, 3.5rem);
@@ -96,29 +86,61 @@
     font-weight: 300;
   }
 
-  /* LOCATION */
+  /* LOCATION BAR */
   .location-bar {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 1.2rem 1.5rem;
     margin: 1.5rem 0;
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
     animation: fadeUp 0.8s 0.1s ease both;
   }
-  .location-bar select {
+  .location-top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .loc-icon { color: var(--accent); font-size: 1.1rem; }
+  .loc-label { font-size: 0.78rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
+  .loc-current {
     flex: 1;
-    min-width: 140px;
+    font-size: 0.95rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .loc-change-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .loc-change-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .location-selects {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .location-selects.hidden { display: none; }
+  .location-selects select {
+    flex: 1;
+    min-width: 130px;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 10px;
     color: var(--text);
     font-family: 'Outfit', sans-serif;
-    font-size: 0.9rem;
-    padding: 0.6rem 1rem;
+    font-size: 0.88rem;
+    padding: 0.6rem 2rem 0.6rem 0.9rem;
     cursor: pointer;
     outline: none;
     transition: border-color 0.2s;
@@ -126,21 +148,44 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a8fa6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
-    padding-right: 2rem;
+    background-color: var(--card);
   }
-  .location-bar select:focus { border-color: var(--accent); }
-  .location-bar select option { background: var(--card); }
-
-  .loc-label {
-    font-size: 0.78rem;
-    color: var(--muted);
-    letter-spacing: 2px;
-    text-transform: uppercase;
+  .location-selects select:focus { border-color: var(--accent); }
+  .location-selects select option { background: var(--card); }
+  .loc-save-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    color: #0c1220;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.65rem 1.4rem;
+    cursor: pointer;
     white-space: nowrap;
+    transition: background 0.2s, transform 0.15s;
   }
-  .loc-icon { color: var(--accent); font-size: 1.1rem; }
+  .loc-save-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+  .loc-save-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-  /* DATE & HIJRI */
+  /* CACHE BADGE */
+  .cache-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-top: 0.6rem;
+  }
+  .cache-badge .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #4caf88;
+  }
+  .cache-badge.offline .dot { background: var(--accent); }
+
+  /* DATE ROW */
   .date-row {
     display: flex;
     justify-content: space-between;
@@ -150,17 +195,8 @@
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  .date-gregorian {
-    font-size: 0.9rem;
-    color: var(--muted);
-    font-weight: 300;
-  }
-  .date-hijri {
-    font-family: 'Amiri', serif;
-    font-size: 1rem;
-    color: var(--accent);
-    letter-spacing: 1px;
-  }
+  .date-gregorian { font-size: 0.9rem; color: var(--muted); font-weight: 300; }
+  .date-hijri { font-family: 'Amiri', serif; font-size: 1rem; color: var(--accent); letter-spacing: 1px; }
   .countdown-box {
     background: var(--active-bg);
     border: 1px solid rgba(201,168,76,0.25);
@@ -173,8 +209,15 @@
     gap: 0.5rem;
   }
   .countdown-box span { font-weight: 600; font-size: 1rem; letter-spacing: 1px; }
+  .live-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s ease infinite;
+  }
 
-  /* PRAYER CARDS */
+  /* PRAYER GRID */
   .prayer-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -182,7 +225,6 @@
     margin-bottom: 2rem;
     animation: fadeUp 0.8s 0.2s ease both;
   }
-
   .prayer-card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -202,10 +244,7 @@
     background: var(--border);
     transition: background 0.3s;
   }
-  .prayer-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-  }
+  .prayer-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
   .prayer-card.active {
     border-color: var(--accent);
     background: linear-gradient(135deg, #1a2840 0%, #16213e 100%);
@@ -225,7 +264,6 @@
     letter-spacing: 0.5px;
   }
   .prayer-card.passed { opacity: 0.45; }
-
   .prayer-icon { font-size: 1.4rem; margin-bottom: 0.6rem; }
   .prayer-name {
     font-size: 0.78rem;
@@ -235,21 +273,11 @@
     font-weight: 500;
     margin-bottom: 0.5rem;
   }
-  .prayer-name-ar {
-    font-family: 'Amiri', serif;
-    font-size: 0.95rem;
-    color: var(--accent);
-    margin-bottom: 0.4rem;
-  }
-  .prayer-time {
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: 1px;
-  }
+  .prayer-name-ar { font-family: 'Amiri', serif; font-size: 0.95rem; color: var(--accent); margin-bottom: 0.4rem; }
+  .prayer-time { font-size: 1.6rem; font-weight: 600; color: var(--text); letter-spacing: 1px; }
   .prayer-card.active .prayer-time { color: var(--accent2); }
 
-  /* MONTHLY CALENDAR */
+  /* CALENDAR */
   .section-title {
     font-size: 0.75rem;
     letter-spacing: 3px;
@@ -260,13 +288,7 @@
     align-items: center;
     gap: 0.75rem;
   }
-  .section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
   .calendar-wrap {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -274,7 +296,6 @@
     overflow: hidden;
     animation: fadeUp 0.8s 0.3s ease both;
   }
-
   .calendar-header {
     display: grid;
     grid-template-columns: 80px repeat(6, 1fr);
@@ -292,9 +313,7 @@
     font-weight: 500;
   }
   .cal-hdr:first-child { text-align: left; }
-
   .calendar-body { padding: 0.5rem; }
-
   .cal-row {
     display: grid;
     grid-template-columns: 80px repeat(6, 1fr);
@@ -308,78 +327,27 @@
     background: var(--active-bg);
     border: 1px solid rgba(201,168,76,0.2);
   }
-
-  .cal-date {
-    font-size: 0.82rem;
-    color: var(--muted);
-    font-weight: 500;
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-  }
+  .cal-date { font-size: 0.82rem; color: var(--muted); font-weight: 500; display: flex; flex-direction: column; gap: 0.1rem; }
   .cal-date .day-num { color: var(--text); font-size: 0.9rem; }
   .cal-date .day-name { font-size: 0.65rem; letter-spacing: 1px; color: var(--muted); }
   .cal-row.today-row .cal-date .day-num { color: var(--accent); }
-
-  .cal-time {
-    font-size: 0.82rem;
-    color: var(--text);
-    text-align: center;
-    font-weight: 400;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+  .cal-time { font-size: 0.82rem; color: var(--text); text-align: center; font-weight: 400; display: flex; align-items: center; justify-content: center; }
   .cal-row.today-row .cal-time { color: var(--accent2); font-weight: 500; }
 
-  /* LOADING */
-  .loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem;
-    gap: 1rem;
-  }
-  .spinner {
-    width: 40px; height: 40px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
+  /* LOADING / ERROR */
+  .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; gap: 1rem; }
+  .spinner { width: 40px; height: 40px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   .loading-text { color: var(--muted); font-size: 0.85rem; letter-spacing: 2px; }
+  .error-msg { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.9rem; }
 
-  .error-msg {
-    text-align: center;
-    padding: 2rem;
-    color: var(--muted);
-    font-size: 0.9rem;
-  }
+  /* FOOTER */
+  footer { text-align: center; padding-top: 3rem; color: var(--muted); font-size: 0.75rem; letter-spacing: 1px; animation: fadeUp 0.8s 0.4s ease both; }
+  footer a { color: var(--accent); text-decoration: none; }
 
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: none; } }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
-
-  .live-dot {
-    display: inline-block;
-    width: 6px; height: 6px;
-    background: var(--accent);
-    border-radius: 50%;
-    animation: pulse 2s ease infinite;
-  }
-
-  /* FOOTER */
-  footer {
-    text-align: center;
-    padding-top: 3rem;
-    color: var(--muted);
-    font-size: 0.75rem;
-    letter-spacing: 1px;
-    animation: fadeUp 0.8s 0.4s ease both;
-  }
-  footer a { color: var(--accent); text-decoration: none; }
 
   @media (max-width: 600px) {
     .prayer-grid { grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
@@ -388,6 +356,8 @@
     .calendar-header, .cal-row { grid-template-columns: 60px repeat(6, 1fr); }
     .cal-time { font-size: 0.7rem; }
     .cal-date .day-num { font-size: 0.78rem; }
+    .location-selects { flex-direction: column; }
+    .location-selects select { width: 100%; }
   }
 </style>
 </head>
@@ -402,12 +372,21 @@
     <div class="subtitle">Namaz Vakitleri</div>
   </header>
 
+  <!-- LOCATION BAR -->
   <div class="location-bar">
-    <div class="loc-icon">📍</div>
-    <span class="loc-label">Konum</span>
-    <select id="selUlke" onchange="loadSehirler()"><option value="">Ülke seçin...</option></select>
-    <select id="selSehir" onchange="loadIlceler()" disabled><option value="">Şehir seçin...</option></select>
-    <select id="selIlce" onchange="loadVakitler()" disabled><option value="">İlçe seçin...</option></select>
+    <div class="location-top">
+      <div class="loc-icon">📍</div>
+      <span class="loc-label">Konum</span>
+      <span class="loc-current" id="locCurrent">Seçilmedi</span>
+      <button class="loc-change-btn" onclick="toggleSelects()">Değiştir</button>
+    </div>
+    <div class="location-selects hidden" id="locSelects">
+      <select id="selUlke" onchange="loadSehirler()"><option value="">Ülke seçin...</option></select>
+      <select id="selSehir" onchange="loadIlceler()" disabled><option value="">Şehir seçin...</option></select>
+      <select id="selIlce" disabled><option value="">İlçe seçin...</option></select>
+      <button class="loc-save-btn" id="btnKaydet" onclick="kaydetVeYukle()" disabled>Kaydet</button>
+    </div>
+    <div id="cacheBadge" class="cache-badge" style="display:none"></div>
   </div>
 
   <div class="date-row">
@@ -420,7 +399,7 @@
   </div>
 
   <div class="prayer-grid" id="prayerGrid">
-    <div class="loading"><div class="spinner"></div><div class="loading-text">Konum seçiniz</div></div>
+    <div class="loading"><div class="spinner"></div><div class="loading-text">Yükleniyor...</div></div>
   </div>
 
   <div class="section-title">Aylık Takvim</div>
@@ -438,18 +417,69 @@
 
 <script>
 const API = 'https://ezanvakti.emushaf.net';
+const CACHE_KEY = 'namazVakti_v2';
+
 const PRAYER_NAMES = [
-  { key: 'Imsak',   tr: 'İmsak',   ar: 'الإمساك', icon: '🌙' },
-  { key: 'Gunes',   tr: 'Güneş',   ar: 'الشروق',  icon: '🌅' },
-  { key: 'Ogle',    tr: 'Öğle',    ar: 'الظهر',   icon: '☀️' },
-  { key: 'Ikindi',  tr: 'İkindi',  ar: 'العصر',   icon: '🌤️' },
-  { key: 'Aksam',   tr: 'Akşam',   ar: 'المغرب',  icon: '🌇' },
-  { key: 'Yatsi',   tr: 'Yatsı',   ar: 'العشاء',  icon: '🌃' }
+  { key: 'Imsak',  tr: 'İmsak',  ar: 'الإمساك', icon: '🌙' },
+  { key: 'Gunes',  tr: 'Güneş',  ar: 'الشروق',  icon: '🌅' },
+  { key: 'Ogle',   tr: 'Öğle',   ar: 'الظهر',   icon: '☀️' },
+  { key: 'Ikindi', tr: 'İkindi', ar: 'العصر',   icon: '🌤️' },
+  { key: 'Aksam',  tr: 'Akşam',  ar: 'المغرب',  icon: '🌇' },
+  { key: 'Yatsi',  tr: 'Yatsı',  ar: 'العشاء',  icon: '🌃' }
 ];
 
 let allVakitler = [];
 let countdownInterval = null;
 
+/* ─── CACHE ─── */
+function saveCache(ilceId, ilceAdi, sehirAdi, ulkeAdi, data) {
+  const now = new Date();
+  const obj = {
+    ilceId, ilceAdi, sehirAdi, ulkeAdi,
+    savedMonth: now.getMonth(),
+    savedYear:  now.getFullYear(),
+    data
+  };
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(obj)); } catch(e) {}
+}
+
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    const now = new Date();
+    // Aynı ay ve yıl → cache geçerli
+    if (obj.savedMonth === now.getMonth() && obj.savedYear === now.getFullYear()) return obj;
+    return null; // Ay değişti, yeni veri çek
+  } catch(e) { return null; }
+}
+
+function clearCache() {
+  try { localStorage.removeItem(CACHE_KEY); } catch(e) {}
+}
+
+function getCacheRaw() {
+  try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch(e) { return null; }
+}
+
+/* ─── UI helpers ─── */
+function setBadge(text, offline = false) {
+  const b = document.getElementById('cacheBadge');
+  b.style.display = 'inline-flex';
+  b.className = 'cache-badge' + (offline ? ' offline' : '');
+  b.innerHTML = `<span class="dot"></span>${text}`;
+}
+
+function toggleSelects() {
+  const s = document.getElementById('locSelects');
+  s.classList.toggle('hidden');
+  if (!s.classList.contains('hidden') && document.getElementById('selUlke').options.length <= 1) {
+    loadUlkeler();
+  }
+}
+
+/* ─── SELECT helpers ─── */
 async function fetchJSON(url) {
   const r = await fetch(url);
   if (!r.ok) throw new Error('API hatası: ' + r.status);
@@ -457,22 +487,24 @@ async function fetchJSON(url) {
 }
 
 async function loadUlkeler() {
+  const sel = document.getElementById('selUlke');
+  if (sel.options.length > 1) return; // zaten yüklü
   try {
     const data = await fetchJSON(`${API}/ulkeler`);
-    const sel = document.getElementById('selUlke');
     data.forEach(u => {
       const o = document.createElement('option');
       o.value = u.UlkeID || u.ulkeID || u.id || u.Id;
       o.textContent = u.UlkeAdi || u.ulkeAdi || u.name || u.Name;
       sel.appendChild(o);
     });
-    // Türkiye varsayılan seç
-    const turkey = [...sel.options].find(o => o.textContent.toLowerCase().includes('türkiye') || o.textContent.toLowerCase().includes('turkiye'));
-    if (turkey) { sel.value = turkey.value; loadSehirler(); }
+    const turkey = [...sel.options].find(o =>
+      o.textContent.toLowerCase().includes('türkiye') ||
+      o.textContent.toLowerCase().includes('turkiye'));
+    if (turkey) { sel.value = turkey.value; await loadSehirler(true); }
   } catch(e) { console.error(e); }
 }
 
-async function loadSehirler() {
+async function loadSehirler(auto = false) {
   const ulkeId = document.getElementById('selUlke').value;
   if (!ulkeId) return;
   const selS = document.getElementById('selSehir');
@@ -480,6 +512,7 @@ async function loadSehirler() {
   selS.innerHTML = '<option value="">Şehir seçin...</option>';
   selI.innerHTML = '<option value="">İlçe seçin...</option>';
   selS.disabled = true; selI.disabled = true;
+  document.getElementById('btnKaydet').disabled = true;
   try {
     const data = await fetchJSON(`${API}/sehirler/${ulkeId}`);
     data.forEach(s => {
@@ -489,18 +522,25 @@ async function loadSehirler() {
       selS.appendChild(o);
     });
     selS.disabled = false;
-    // İstanbul varsayılan
-    const istanbul = [...selS.options].find(o => o.textContent.toLowerCase().includes('istanbul') || o.textContent.toLowerCase().includes('İstanbul'));
-    if (istanbul) { selS.value = istanbul.value; loadIlceler(); }
+    if (auto) {
+      const cached = getCacheRaw();
+      const istanbul = [...selS.options].find(o =>
+        o.textContent.toLowerCase().includes('istanbul'));
+      const target = cached
+        ? [...selS.options].find(o => o.textContent === cached.sehirAdi) || istanbul
+        : istanbul;
+      if (target) { selS.value = target.value; await loadIlceler(true); }
+    }
   } catch(e) { console.error(e); }
 }
 
-async function loadIlceler() {
+async function loadIlceler(auto = false) {
   const sehirId = document.getElementById('selSehir').value;
   if (!sehirId) return;
   const selI = document.getElementById('selIlce');
   selI.innerHTML = '<option value="">İlçe seçin...</option>';
   selI.disabled = true;
+  document.getElementById('btnKaydet').disabled = true;
   try {
     const data = await fetchJSON(`${API}/ilceler/${sehirId}`);
     data.forEach(i => {
@@ -510,63 +550,96 @@ async function loadIlceler() {
       selI.appendChild(o);
     });
     selI.disabled = false;
-    // İlk ilçeyi otomatik seç
-    if (selI.options.length > 1) { selI.selectedIndex = 1; loadVakitler(); }
+    selI.addEventListener('change', () => {
+      document.getElementById('btnKaydet').disabled = !selI.value;
+    }, { once: false });
+
+    if (auto) {
+      const cached = getCacheRaw();
+      let target = null;
+      if (cached) target = [...selI.options].find(o => o.value == cached.ilceId);
+      if (!target && selI.options.length > 1) target = selI.options[1];
+      if (target) { selI.value = target.value; document.getElementById('btnKaydet').disabled = false; }
+    } else if (selI.options.length > 1) {
+      document.getElementById('btnKaydet').disabled = false;
+    }
   } catch(e) { console.error(e); }
 }
 
-async function loadVakitler() {
-  const ilceId = document.getElementById('selIlce').value;
+/* ─── KAYDET & YÜKLE ─── */
+async function kaydetVeYukle() {
+  const selU = document.getElementById('selUlke');
+  const selS = document.getElementById('selSehir');
+  const selI = document.getElementById('selIlce');
+  const ilceId  = selI.value;
+  const ilceAdi = selI.options[selI.selectedIndex]?.textContent || '';
+  const sehirAdi= selS.options[selS.selectedIndex]?.textContent || '';
+  const ulkeAdi = selU.options[selU.selectedIndex]?.textContent || '';
   if (!ilceId) return;
-
-  document.getElementById('prayerGrid').innerHTML = `<div class="loading"><div class="spinner"></div><div class="loading-text">Yükleniyor...</div></div>`;
-  document.getElementById('calendarWrap').innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
-
-  try {
-    const data = await fetchJSON(`${API}/vakitler/${ilceId}`);
-    allVakitler = data;
-    renderPrayerCards(data);
-    renderCalendar(data);
-    startCountdown(data);
-  } catch(e) {
-    document.getElementById('prayerGrid').innerHTML = `<div class="error-msg">Veri alınamadı. Lütfen tekrar deneyin.</div>`;
-  }
+  clearCache(); // eski cache sil
+  await fetchAndRender(ilceId, ilceAdi, sehirAdi, ulkeAdi);
+  document.getElementById('locSelects').classList.add('hidden');
 }
 
+/* ─── FETCH & RENDER ─── */
+async function fetchAndRender(ilceId, ilceAdi, sehirAdi, ulkeAdi, fromCache = false, cachedData = null) {
+  document.getElementById('locCurrent').textContent = `${sehirAdi} / ${ilceAdi}`;
+
+  if (!fromCache) {
+    document.getElementById('prayerGrid').innerHTML = `<div class="loading"><div class="spinner"></div><div class="loading-text">Yükleniyor...</div></div>`;
+    document.getElementById('calendarWrap').innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+  }
+
+  let data = cachedData;
+  if (!data) {
+    try {
+      data = await fetchJSON(`${API}/vakitler/${ilceId}`);
+      saveCache(ilceId, ilceAdi, sehirAdi, ulkeAdi, data);
+      setBadge('Veriler güncellendi · ' + new Date().toLocaleDateString('tr-TR'));
+    } catch(e) {
+      document.getElementById('prayerGrid').innerHTML = `<div class="error-msg">🌐 İnternet bağlantısı yok ve önbellekte veri bulunamadı.</div>`;
+      return;
+    }
+  } else {
+    setBadge('Önbellekten yüklendi (çevrimdışı çalışıyor)', true);
+  }
+
+  allVakitler = data;
+  renderPrayerCards(data);
+  renderCalendar(data);
+  startCountdown(data);
+}
+
+/* ─── PRAYER CARDS ─── */
 function todayVakit(data) {
   const today = new Date();
   const pad = n => String(n).padStart(2,'0');
-  const todayStr = `${today.getDate().toString().padStart(2,'0')}.${pad(today.getMonth()+1)}.${today.getFullYear()}`;
-  return data.find(v => (v.MiladiTarihKisa || '').startsWith(todayStr)) ||
-         data.find(v => (v.MiladiTarihKisaIso8601 || '').includes(today.toISOString().slice(0,10))) ||
+  const todayStr = `${pad(today.getDate())}.${pad(today.getMonth()+1)}.${today.getFullYear()}`;
+  return data.find(v => (v.MiladiTarihKisa||'').startsWith(todayStr)) ||
+         data.find(v => (v.MiladiTarihKisaIso8601||'').includes(today.toISOString().slice(0,10))) ||
          data[0];
 }
 
 function getActiveIndex(vakit) {
   if (!vakit) return -1;
   const now = new Date();
-  const hm = h => { const [hh,mm] = h.split(':').map(Number); return hh*60+mm; };
   const cur = now.getHours()*60 + now.getMinutes();
-  const times = PRAYER_NAMES.map(p => hm(vakit[p.key] || '00:00'));
-
+  const times = PRAYER_NAMES.map(p => {
+    const [h,m] = (vakit[p.key]||'00:00').split(':').map(Number);
+    return h*60+m;
+  });
   let active = -1;
-  for (let i = 0; i < times.length; i++) {
-    if (cur >= times[i]) active = i;
-  }
+  for (let i = 0; i < times.length; i++) { if (cur >= times[i]) active = i; }
   return active;
 }
 
 function renderPrayerCards(data) {
   const vakit = todayVakit(data);
   if (!vakit) return;
-
   document.getElementById('tarihMiladi').textContent = vakit.MiladiTarihUzun || vakit.MiladiTarihKisa || '';
-  document.getElementById('tarihHicri').textContent = (vakit.HicriTarihUzun || vakit.HicriTarihKisa || '');
-
+  document.getElementById('tarihHicri').textContent  = vakit.HicriTarihUzun  || vakit.HicriTarihKisa  || '';
   const activeIdx = getActiveIndex(vakit);
-
-  const grid = document.getElementById('prayerGrid');
-  grid.innerHTML = PRAYER_NAMES.map((p, i) => {
+  document.getElementById('prayerGrid').innerHTML = PRAYER_NAMES.map((p,i) => {
     const time = vakit[p.key] || '--:--';
     const isActive = i === activeIdx;
     const isPassed = i < activeIdx;
@@ -579,11 +652,11 @@ function renderPrayerCards(data) {
   }).join('');
 }
 
+/* ─── COUNTDOWN ─── */
 function startCountdown(data) {
   if (countdownInterval) clearInterval(countdownInterval);
-  const box = document.getElementById('countdown');
+  document.getElementById('countdown').style.display = 'flex';
   const val = document.getElementById('countdownVal');
-  box.style.display = 'flex';
 
   function tick() {
     const vakit = todayVakit(data);
@@ -597,17 +670,15 @@ function startCountdown(data) {
     const next = times.find(t => t > cur);
     if (next === undefined) { val.textContent = 'Yarın...'; return; }
     const diff = next - cur;
-    const hh = Math.floor(diff/3600);
-    const mm = Math.floor((diff%3600)/60);
-    const ss = diff%60;
+    const hh = Math.floor(diff/3600), mm = Math.floor((diff%3600)/60), ss = diff%60;
     val.textContent = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
-    // Aktif vakit değişti mi?
     renderPrayerCards(data);
   }
   tick();
   countdownInterval = setInterval(tick, 1000);
 }
 
+/* ─── CALENDAR ─── */
 function renderCalendar(data) {
   const today = new Date();
   const todayStr = `${String(today.getDate()).padStart(2,'0')}.${String(today.getMonth()+1).padStart(2,'0')}.${today.getFullYear()}`;
@@ -620,19 +691,15 @@ function renderCalendar(data) {
 
   const rows = data.map(v => {
     const dateStr = v.MiladiTarihKisa || '';
-    const isToday = dateStr.startsWith(todayStr.slice(0,5)) && dateStr.includes(today.getFullYear());
+    const isToday = dateStr === todayStr;
     const parts = dateStr.split('.');
-    const dayNum = parts[0] || '';
     let dayName = '';
     if (parts.length >= 3) {
-      try {
-        const d = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
-        dayName = DAYS[d.getDay()];
-      } catch(e){}
+      try { dayName = DAYS[new Date(+parts[2], +parts[1]-1, +parts[0]).getDay()]; } catch(e){}
     }
     return `<div class="cal-row ${isToday?'today-row':''}">
       <div class="cal-date">
-        <span class="day-num">${dayNum} ${parts[1]?('.'+parts[1]):''}${isToday ? ' ★' :''}</span>
+        <span class="day-num">${parts[0]||''}.${parts[1]||''}${isToday?' ★':''}</span>
         <span class="day-name">${dayName}</span>
       </div>
       ${PRAYER_NAMES.map(p=>`<div class="cal-time">${v[p.key]||'--:--'}</div>`).join('')}
@@ -640,16 +707,36 @@ function renderCalendar(data) {
   }).join('');
 
   document.getElementById('calendarWrap').innerHTML = header + `<div class="calendar-body">${rows}</div>`;
-
-  // Bugünün satırına scroll et
   setTimeout(() => {
-    const todayRow = document.querySelector('.today-row');
-    if (todayRow) todayRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const row = document.querySelector('.today-row');
+    if (row) row.scrollIntoView({ behavior:'smooth', block:'nearest' });
   }, 300);
 }
 
-// Başlat
-loadUlkeler();
+/* ─── BOOT ─── */
+async function boot() {
+  const cached = loadCache();
+
+  if (cached) {
+    await fetchAndRender(cached.ilceId, cached.ilceAdi, cached.sehirAdi, cached.ulkeAdi, true, cached.data);
+
+    try {
+      const fresh = await fetchJSON(`${API}/vakitler/${cached.ilceId}`);
+      saveCache(cached.ilceId, cached.ilceAdi, cached.sehirAdi, cached.ulkeAdi, fresh);
+      allVakitler = fresh;
+      renderCalendar(fresh);
+      setBadge('Veriler güncellendi · ' + new Date().toLocaleDateString('tr-TR'));
+    } catch(e) {
+    }
+  } else {
+    document.getElementById('prayerGrid').innerHTML = `<div class="loading"><div class="spinner"></div><div class="loading-text">Konum seçiniz</div></div>`;
+    document.getElementById('calendarWrap').innerHTML = `<div class="loading" style="padding:2rem"><div class="loading-text" style="font-size:0.8rem">Konum bekleniyor...</div></div>`;
+    document.getElementById('locSelects').classList.remove('hidden');
+    await loadUlkeler();
+  }
+}
+
+boot();
 </script>
 </body>
 </html>
