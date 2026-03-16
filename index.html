@@ -527,6 +527,24 @@
   <footer>
     Veriler: <a href="https://diyanet.gov.tr" target="_blank">Diyanet İşleri Başkanlığı</a> &nbsp;·&nbsp;
     API: <a href="https://ezanvakti.emushaf.net" target="_blank">EzanVakti API</a>
+    <div style="margin-top:1.2rem">
+      <button onclick="hardReset()" style="
+        background:transparent;
+        border:1px solid rgba(192,71,58,0.3);
+        border-radius:8px;
+        color:var(--muted);
+        font-family:'Outfit',sans-serif;
+        font-size:0.72rem;
+        padding:0.4rem 0.9rem;
+        cursor:pointer;
+        letter-spacing:1px;
+        transition:border-color 0.2s,color 0.2s;
+      "
+      onmouseover="this.style.borderColor='rgba(192,71,58,0.7)';this.style.color='#c0473a'"
+      onmouseout="this.style.borderColor='rgba(192,71,58,0.3)';this.style.color='var(--muted)'">
+        ↺ Önbelleği Temizle
+      </button>
+    </div>
   </footer>
 </div>
 
@@ -865,6 +883,33 @@ function clearBanner() {
 }
 
 /* ─── BOOT ─── */
+/* ─── HARD RESET ─── */
+async function hardReset() {
+  if (!confirm('Tüm önbellek, konum ve uygulama verileri silinecek. Sayfa yenilenecek. Devam?')) return;
+
+  // 1. localStorage temizle (vakit cache + zikir verileri dahil her şey)
+  try { localStorage.clear(); } catch(e) {}
+
+  // 2. Service Worker cache'lerini temizle
+  if ('caches' in window) {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    } catch(e) {}
+  }
+
+  // 3. Service Worker kaydını sil
+  if ('serviceWorker' in navigator) {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    } catch(e) {}
+  }
+
+  // 4. Sayfayı hard reload yap (cache bypass)
+  window.location.reload(true);
+}
+
 async function boot() {
   // Service Worker kaydı
   if ('serviceWorker' in navigator) {
