@@ -201,31 +201,56 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 0.5rem 0 1.5rem;
+    margin: 0.5rem 0 1rem;
     animation: fadeUp 0.8s 0.15s ease both;
     flex-wrap: wrap;
     gap: 0.5rem;
   }
   .date-gregorian { font-size: 0.9rem; color: var(--muted); font-weight: 300; }
   .date-hijri { font-family: 'Amiri', serif; font-size: 1rem; color: var(--accent); letter-spacing: 1px; }
-  .countdown-box {
-    background: var(--active-bg);
-    border: 1px solid rgba(201,168,76,0.25);
-    border-radius: 12px;
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-    color: var(--accent2);
-    display: flex;
+
+  /* ESKİ BOX — gizli, JS referans için ID korunuyor */
+  .countdown-box { display: none !important; }
+
+  /* YENİ: belirgin countdown kartı */
+  .countdown-card {
+    background: linear-gradient(135deg, rgba(201,168,76,0.1) 0%, rgba(201,168,76,0.04) 100%);
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: 18px;
+    padding: 1.1rem 1.4rem;
+    margin-bottom: 1.2rem;
+    display: none;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: space-between;
+    gap: 1rem;
+    animation: fadeUp 0.8s 0.18s ease both;
+    flex-wrap: wrap;
   }
-  .countdown-box span { font-weight: 600; font-size: 1rem; letter-spacing: 1px; }
+  .countdown-card.visible { display: flex; }
+  .countdown-left { display: flex; flex-direction: column; gap: 0.22rem; }
+  .countdown-label {
+    font-size: 0.72rem; color: var(--muted);
+    letter-spacing: 2px; text-transform: uppercase;
+    display: flex; align-items: center; gap: 0.45rem;
+  }
   .live-dot {
-    display: inline-block;
-    width: 6px; height: 6px;
-    background: var(--accent);
-    border-radius: 50%;
-    animation: pulse 2s ease infinite;
+    display: inline-block; width: 7px; height: 7px;
+    background: var(--accent); border-radius: 50%;
+    animation: pulse 2s ease infinite; flex-shrink: 0;
+  }
+  .countdown-next-name {
+    font-family: 'Amiri', serif;
+    font-size: 1.15rem; color: var(--accent2); letter-spacing: 1px;
+  }
+  .countdown-time {
+    font-size: clamp(1.9rem, 5vw, 2.5rem);
+    font-weight: 600; color: var(--text);
+    letter-spacing: 3px; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .countdown-sub {
+    font-size: 0.7rem; color: var(--muted);
+    letter-spacing: 1px; margin-top: 0.25rem; text-align: right;
   }
 
   /* PRAYER GRID */
@@ -422,6 +447,12 @@
 
 <div class="wrapper">
   <header>
+    <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:.5rem;">
+      <a href="zikir.html" style="display:inline-flex;align-items:center;gap:.45rem;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.25);border-radius:10px;padding:.38rem .9rem;color:var(--muted);text-decoration:none;font-size:.75rem;font-family:'Outfit',sans-serif;letter-spacing:1px;transition:background .2s,border-color .2s,color .2s;" onmouseover="this.style.background='rgba(201,168,76,0.13)';this.style.borderColor='rgba(201,168,76,0.45)';this.style.color='var(--accent)'" onmouseout="this.style.background='rgba(201,168,76,0.07)';this.style.borderColor='rgba(201,168,76,0.25)';this.style.color='var(--muted)'">
+        <span style="font-family:'Amiri',serif;font-size:.95rem;color:var(--accent)">الذكر</span>
+        Zikir Matik
+      </a>
+    </div>
     <div class="arabic-title">مواقيت الصلاة</div>
     <div class="subtitle">Namaz Vakitleri</div>
   </header>
@@ -448,9 +479,25 @@
   <div class="date-row">
     <div class="date-gregorian" id="tarihMiladi">—</div>
     <div class="date-hijri" id="tarihHicri">—</div>
-    <div class="countdown-box" id="countdown" style="display:none">
-      <div class="live-dot"></div>
-      Sonraki vakite: <span id="countdownVal">--:--:--</span>
+  </div>
+
+  <!-- Gizli eski kutu — JS uyumluluğu için -->
+  <div class="countdown-box" id="countdown" style="display:none">
+    <span id="countdownVal"></span>
+  </div>
+
+  <!-- YENİ: belirgin kalan süre kartı -->
+  <div class="countdown-card" id="countdownCard">
+    <div class="countdown-left">
+      <div class="countdown-label">
+        <div class="live-dot"></div>
+        Sonraki namaza kalan
+      </div>
+      <div class="countdown-next-name" id="nextPrayerName">—</div>
+    </div>
+    <div style="text-align:right">
+      <div class="countdown-time" id="countdownBig">--:--:--</div>
+      <div class="countdown-sub" id="countdownSub">saat : dakika : saniye</div>
     </div>
   </div>
 
@@ -469,30 +516,6 @@
     <div class="loading" style="padding:2rem">
       <div class="loading-text" style="font-size:0.8rem">Vakit verisi bekleniyor...</div>
     </div>
-  </div>
-
-  <!-- ZİKİR MATİK BUTONU -->
-  <div style="text-align:center; margin-top:2.5rem; animation: fadeUp 0.8s 0.35s ease both;">
-    <a href="zikir.html" style="
-      display: inline-flex;
-      align-items: center;
-      gap: 0.6rem;
-      background: rgba(201,168,76,0.08);
-      border: 1px solid rgba(201,168,76,0.3);
-      border-radius: 16px;
-      padding: 0.85rem 1.8rem;
-      color: var(--accent2);
-      text-decoration: none;
-      font-size: 0.9rem;
-      font-family: 'Outfit', sans-serif;
-      letter-spacing: 1px;
-      transition: background 0.2s, border-color 0.2s, transform 0.15s;
-    " onmouseover="this.style.background='rgba(201,168,76,0.14)';this.style.transform='translateY(-2px)'"
-       onmouseout="this.style.background='rgba(201,168,76,0.08)';this.style.transform='none'">
-      <span style="font-family:'Amiri',serif; font-size:1.1rem;">الذكر</span>
-      Zikir Matik
-      <span style="opacity:0.5; font-size:0.8rem;">→</span>
-    </a>
   </div>
 
   <footer>
@@ -752,8 +775,10 @@ function renderPrayerCards(data) {
 /* ─── COUNTDOWN ─── */
 function startCountdown(data) {
   if (countdownInterval) clearInterval(countdownInterval);
-  document.getElementById('countdown').style.display = 'flex';
-  const val = document.getElementById('countdownVal');
+  const card  = document.getElementById('countdownCard');
+  const bigEl = document.getElementById('countdownBig');
+  const nameEl= document.getElementById('nextPrayerName');
+  const subEl = document.getElementById('countdownSub');
 
   function tick() {
     const vakit = todayVakit(data);
@@ -764,11 +789,22 @@ function startCountdown(data) {
       const [h,m] = (vakit[p.key]||'00:00').split(':').map(Number);
       return h*3600 + m*60;
     });
-    const next = times.find(t => t > cur);
-    if (next === undefined) { val.textContent = 'Yarın...'; return; }
-    const diff = next - cur;
-    const hh = Math.floor(diff/3600), mm = Math.floor((diff%3600)/60), ss = diff%60;
-    val.textContent = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+    const nextIdx = times.findIndex(t => t > cur);
+    if (nextIdx === -1) {
+      bigEl.textContent  = 'Yarın';
+      nameEl.textContent = 'İmsak';
+      subEl.textContent  = 'yeni gün';
+      card.classList.add('visible');
+      return;
+    }
+    const diff = times[nextIdx] - cur;
+    const hh = Math.floor(diff/3600);
+    const mm = Math.floor((diff%3600)/60);
+    const ss = diff%60;
+    bigEl.textContent  = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+    nameEl.textContent = PRAYER_NAMES[nextIdx].ar + '  ' + PRAYER_NAMES[nextIdx].tr;
+    subEl.textContent  = hh > 0 ? `${hh} saat ${mm} dakika kaldı` : mm > 0 ? `${mm} dakika ${ss} saniye kaldı` : `${ss} saniye kaldı`;
+    card.classList.add('visible');
     renderPrayerCards(data);
   }
   tick();
