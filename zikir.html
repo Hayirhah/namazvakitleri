@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 <title>Zikir Matik</title>
 <meta name="theme-color" content="#0c1220">
 <meta name="mobile-web-app-capable" content="yes">
@@ -24,6 +24,7 @@ body{
   font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
   min-height:100dvh;height:100dvh;
   display:flex;flex-direction:column;overflow:hidden;user-select:none;
+  touch-action:manipulation;
 }
 
 .stars{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:
@@ -111,6 +112,8 @@ body{
   overflow:visible;
   transition:transform .1s ease, box-shadow .2s;
   box-shadow:0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+  touch-action:manipulation;
+  -webkit-user-select:none;
 }
 .tap-btn:hover  { box-shadow:0 10px 40px rgba(0,0,0,.5), 0 0 30px rgba(201,168,76,.12), inset 0 1px 0 rgba(255,255,255,.04); }
 .tap-btn:active { transform:scale(.93); }
@@ -209,7 +212,7 @@ body{
 
 <!-- TOP -->
 <div class="topbar fu">
-  <a href="index.html" class="back-btn">← Namaz</a>
+  <a href="namaz-vakitleri.html" class="back-btn">← Namaz</a>
   <div class="page-title">الذكر</div>
   <button class="menu-btn" onclick="openModal()">☰ Menü</button>
 </div>
@@ -529,6 +532,16 @@ document.addEventListener('keydown',e=>{
 });
 
 load();render();
+
+// Dokunmatik ekranlarda çift tıklama zoom'unu tamamen engelle
+let lastTap = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTap < 300) {
+    e.preventDefault();
+  }
+  lastTap = now;
+}, { passive: false });
 </script>
 </body>
 </html>
