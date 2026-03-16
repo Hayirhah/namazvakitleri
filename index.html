@@ -78,22 +78,27 @@
     padding: 0 1.5rem 4rem;
   }
 
+  /* Sayfa ilk açıldığında countdown kartı viewport tepesinde görünsün.
+     #page-top anchor'ına kadar olan kısım (header+konum+tarih) compact tutulur.
+     JS ile bu bölgenin yüksekliği ölçülüp scroll yapılır — 1px sapma olmaz. */
+  #page-top { display: block; height: 0; }
+
   /* HEADER */
-  header { text-align: center; padding: .5rem 0 .5rem; animation: fadeDown 0.8s ease both; }
+  header { text-align: center; padding: .4rem 0 .2rem; animation: fadeDown 0.8s ease both; }
   .arabic-title {
     font-family: 'Amiri', serif;
-    font-size: clamp(1.6rem, 4.5vw, 2.6rem);
+    font-size: clamp(1.2rem, 3.5vw, 1.8rem);
     color: var(--accent);
     letter-spacing: 2px;
     line-height: 1.2;
     text-shadow: 0 0 40px rgba(201,168,76,0.3);
   }
   .subtitle {
-    font-size: 0.85rem;
+    font-size: 0.72rem;
     color: var(--muted);
-    letter-spacing: 4px;
+    letter-spacing: 3px;
     text-transform: uppercase;
-    margin-top: 0.4rem;
+    margin-top: 0.15rem;
     font-weight: 300;
   }
 
@@ -103,7 +108,7 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 1.2rem 1.5rem;
-    margin: .4rem 0;
+    margin: .25rem 0;
     animation: fadeUp 0.8s 0.1s ease both;
   }
   .location-top {
@@ -201,7 +206,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 0.5rem 0 1rem;
+    margin: .2rem 0 .4rem;
     animation: fadeUp 0.8s 0.15s ease both;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -219,15 +224,13 @@
     border-radius: 18px;
     padding: 1.1rem 1.4rem;
     margin-bottom: 1.2rem;
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    animation: fadeUp 0.8s 0.18s ease both;
     flex-wrap: wrap;
-    scroll-margin-top: 0;
+    min-height: 80px;
   }
-  .countdown-card.visible { display: flex; }
   .countdown-left { display: flex; flex-direction: column; gap: 0.22rem; }
   .countdown-label {
     font-size: 0.72rem; color: var(--muted);
@@ -447,39 +450,41 @@
 <div class="bg-art"></div>
 
 <div class="wrapper">
-  <header>
-    <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:.5rem;">
-      <a href="zikir.html" style="display:inline-flex;align-items:center;gap:.45rem;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.25);border-radius:10px;padding:.38rem .9rem;color:var(--muted);text-decoration:none;font-size:.75rem;font-family:'Outfit',sans-serif;letter-spacing:1px;transition:background .2s,border-color .2s,color .2s;" onmouseover="this.style.background='rgba(201,168,76,0.13)';this.style.borderColor='rgba(201,168,76,0.45)';this.style.color='var(--accent)'" onmouseout="this.style.background='rgba(201,168,76,0.07)';this.style.borderColor='rgba(201,168,76,0.25)';this.style.color='var(--muted)'">
-        <span style="font-family:'Amiri',serif;font-size:.95rem;color:var(--accent)">الذكر</span>
-        Zikir Matik
-      </a>
-    </div>
-    <div class="arabic-title">مواقيت الصلاة</div>
-    <div class="subtitle">Namaz Vakitleri</div>
-  </header>
 
-  <!-- LOCATION BAR -->
-  <div class="location-bar">
-    <div class="location-top">
-      <div class="loc-icon">📍</div>
-      <span class="loc-label">Konum</span>
-      <span class="loc-current" id="locCurrent">Seçilmedi</span>
-      <button class="loc-change-btn" onclick="toggleSelects()">Değiştir</button>
-    </div>
-    <div class="location-selects hidden" id="locSelects">
-      <select id="selUlke" onchange="loadSehirler()"><option value="">Ülke seçin...</option></select>
-      <select id="selSehir" onchange="loadIlceler()" disabled><option value="">Şehir seçin...</option></select>
-      <select id="selIlce" disabled><option value="">İlçe seçin...</option></select>
-      <button class="loc-save-btn" id="btnKaydet" onclick="kaydetVeYukle()" disabled>Kaydet</button>
-    </div>
-    <div id="cacheBadge" class="cache-badge" style="display:none"></div>
-  </div>
+  <div>
+    <header>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.2rem;">
+        <div class="arabic-title">مواقيت الصلاة</div>
+        <a href="zikir.html" style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.25);border-radius:10px;padding:.32rem .75rem;color:var(--muted);text-decoration:none;font-size:.72rem;font-family:'Outfit',sans-serif;letter-spacing:1px;transition:background .2s,border-color .2s,color .2s;white-space:nowrap;" onmouseover="this.style.background='rgba(201,168,76,0.13)';this.style.borderColor='rgba(201,168,76,0.45)';this.style.color='var(--accent)'" onmouseout="this.style.background='rgba(201,168,76,0.07)';this.style.borderColor='rgba(201,168,76,0.25)';this.style.color='var(--muted)'">
+          <span style="font-family:'Amiri',serif;font-size:.9rem;color:var(--accent)">الذكر</span>
+          Zikir
+        </a>
+      </div>
+    </header>
 
-  <div id="bannerArea"></div>
+    <!-- LOCATION BAR -->
+    <div class="location-bar">
+      <div class="location-top">
+        <div class="loc-icon">📍</div>
+        <span class="loc-label">Konum</span>
+        <span class="loc-current" id="locCurrent">Seçilmedi</span>
+        <button class="loc-change-btn" onclick="toggleSelects()">Değiştir</button>
+      </div>
+      <div class="location-selects hidden" id="locSelects">
+        <select id="selUlke" onchange="loadSehirler()"><option value="">Ülke seçin...</option></select>
+        <select id="selSehir" onchange="loadIlceler()" disabled><option value="">Şehir seçin...</option></select>
+        <select id="selIlce" disabled><option value="">İlçe seçin...</option></select>
+        <button class="loc-save-btn" id="btnKaydet" onclick="kaydetVeYukle()" disabled>Kaydet</button>
+      </div>
+      <div id="cacheBadge" class="cache-badge" style="display:none"></div>
+    </div>
 
-  <div class="date-row">
-    <div class="date-gregorian" id="tarihMiladi">—</div>
-    <div class="date-hijri" id="tarihHicri">—</div>
+    <div id="bannerArea"></div>
+
+    <div class="date-row">
+      <div class="date-gregorian" id="tarihMiladi">—</div>
+      <div class="date-hijri" id="tarihHicri">—</div>
+    </div>
   </div>
 
   <!-- Gizli eski kutu — JS uyumluluğu için -->
@@ -729,11 +734,7 @@ async function fetchAndRender(ilceId, ilceAdi, sehirAdi, ulkeAdi, fromCache = fa
   renderPrayerCards(data);
   renderCalendar(data);
   startCountdown(data);
-  // Sayfa her yüklenişinde countdown kartına anında konum
-  requestAnimationFrame(() => {
-    const card = document.getElementById('countdownCard');
-    if (card) card.scrollIntoView({ behavior: 'instant', block: 'start' });
-  });
+
 }
 
 /* ─── PRAYER CARDS ─── */
@@ -800,8 +801,7 @@ function startCountdown(data) {
       bigEl.textContent  = 'Yarın';
       nameEl.textContent = 'İmsak';
       subEl.textContent  = 'yeni gün';
-      card.classList.add('visible');
-      return;
+        return;
     }
     const diff = times[nextIdx] - cur;
     const hh = Math.floor(diff/3600);
@@ -810,7 +810,6 @@ function startCountdown(data) {
     bigEl.textContent  = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
     nameEl.textContent = PRAYER_NAMES[nextIdx].ar + '  ' + PRAYER_NAMES[nextIdx].tr;
     subEl.textContent  = hh > 0 ? `${hh} saat ${mm} dakika kaldı` : mm > 0 ? `${mm} dakika ${ss} saniye kaldı` : `${ss} saniye kaldı`;
-    card.classList.add('visible');
     renderPrayerCards(data);
   }
   tick();
@@ -846,10 +845,7 @@ function renderCalendar(data) {
   }).join('');
 
   document.getElementById('calendarWrap').innerHTML = header + `<div class="calendar-body">${rows}</div>`;
-  setTimeout(() => {
-    const row = document.querySelector('.today-row');
-    if (row) row.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  }, 300);
+
 }
 
 /* ─── BANNERS ─── */
@@ -943,6 +939,8 @@ async function boot() {
       setTimeout(() => loadUlkeler(), 2000);
     }
   }
+
+
 
   // Online/offline durum değişimlerini dinle
   window.addEventListener('offline', () => {
