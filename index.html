@@ -9,7 +9,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Namaz Vakitleri">
-<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
+
 <style>
   :root {
     --bg: #0c1220;
@@ -282,6 +287,20 @@
   .prayer-time { font-size: 1.6rem; font-weight: 600; color: var(--text); letter-spacing: 1px; }
   .prayer-card.active .prayer-time { color: var(--accent2); }
 
+  /* ② SKELETON SCREEN */
+  @keyframes shimmer {
+    from { background-position: 200% center; }
+    to   { background-position: -200% center; }
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--card) 25%, var(--border) 50%, var(--card) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease infinite;
+    border-radius: 18px;
+    height: 155px;
+    border: 1px solid var(--border);
+  }
+
   /* CALENDAR */
   .section-title {
     font-size: 0.75rem;
@@ -386,6 +405,7 @@
     .prayer-grid { grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
     .prayer-card { padding: 1rem 0.6rem; }
     .prayer-time { font-size: 1.2rem; }
+    .skeleton { height: 120px; }
     .calendar-header, .cal-row { grid-template-columns: 60px repeat(6, 1fr); }
     .cal-time { font-size: 0.7rem; }
     .cal-date .day-num { font-size: 0.78rem; }
@@ -433,8 +453,14 @@
     </div>
   </div>
 
+  <!-- ② SKELETON: 6 boş kart ile başlar, veri gelince yerini alır -->
   <div class="prayer-grid" id="prayerGrid">
-    <div class="loading"><div class="spinner"></div><div class="loading-text">Yükleniyor...</div></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
   </div>
 
   <div class="section-title">Aylık Takvim</div>
@@ -453,6 +479,14 @@
 <script>
 const API = 'https://ezanvakti.emushaf.net';
 const CACHE_KEY = 'namazVakti_v2';
+
+// ③ DEFAULT KONUM: İstanbul / Fatih ilçe ID'si (sabit)
+// API'dan öğrenmek için bir kez: fetch(API+'/ilceler/9541') kontrol edin
+// Büyük çoğunluk için makul fallback — kullanıcı isterse "Değiştir"den değiştirir
+const DEFAULT_ILCE_ID  = '9541';
+const DEFAULT_ILCE_ADI = 'Fatih';
+const DEFAULT_SEHIR    = 'İstanbul';
+const DEFAULT_ULKE     = 'Türkiye';
 
 const PRAYER_NAMES = [
   { key: 'Imsak',  tr: 'İmsak',  ar: 'الإمساك', icon: '🌙' },
@@ -484,9 +518,8 @@ function loadCache() {
     if (!raw) return null;
     const obj = JSON.parse(raw);
     const now = new Date();
-    // Aynı ay ve yıl → cache geçerli
     if (obj.savedMonth === now.getMonth() && obj.savedYear === now.getFullYear()) return obj;
-    return null; // Ay değişti, yeni veri çek
+    return null;
   } catch(e) { return null; }
 }
 
@@ -523,7 +556,7 @@ async function fetchJSON(url) {
 
 async function loadUlkeler() {
   const sel = document.getElementById('selUlke');
-  if (sel.options.length > 1) return; // zaten yüklü
+  if (sel.options.length > 1) return;
   try {
     const data = await fetchJSON(`${API}/ulkeler`);
     data.forEach(u => {
@@ -611,7 +644,7 @@ async function kaydetVeYukle() {
   const sehirAdi= selS.options[selS.selectedIndex]?.textContent || '';
   const ulkeAdi = selU.options[selU.selectedIndex]?.textContent || '';
   if (!ilceId) return;
-  clearCache(); // eski cache sil
+  clearCache();
   await fetchAndRender(ilceId, ilceAdi, sehirAdi, ulkeAdi);
   document.getElementById('locSelects').classList.add('hidden');
 }
@@ -620,9 +653,12 @@ async function kaydetVeYukle() {
 async function fetchAndRender(ilceId, ilceAdi, sehirAdi, ulkeAdi, fromCache = false, cachedData = null) {
   document.getElementById('locCurrent').textContent = `${sehirAdi} / ${ilceAdi}`;
 
-  if (!fromCache) {
-    document.getElementById('prayerGrid').innerHTML = `<div class="loading"><div class="spinner"></div><div class="loading-text">Yükleniyor...</div></div>`;
-    document.getElementById('calendarWrap').innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+  // ② Skeleton: sadece cache yoksa ve grid boşsa göster (zaten HTML'de var)
+  if (!fromCache && !cachedData) {
+    document.getElementById('prayerGrid').innerHTML =
+      Array(6).fill('<div class="skeleton"></div>').join('');
+    document.getElementById('calendarWrap').innerHTML =
+      `<div class="loading"><div class="spinner"></div></div>`;
   }
 
   let data = cachedData;
@@ -632,7 +668,8 @@ async function fetchAndRender(ilceId, ilceAdi, sehirAdi, ulkeAdi, fromCache = fa
       saveCache(ilceId, ilceAdi, sehirAdi, ulkeAdi, data);
       setBadge('Veriler güncellendi · ' + new Date().toLocaleDateString('tr-TR'));
     } catch(e) {
-      document.getElementById('prayerGrid').innerHTML = `<div class="error-msg">🌐 İnternet bağlantısı yok ve önbellekte veri bulunamadı.</div>`;
+      document.getElementById('prayerGrid').innerHTML =
+        `<div class="error-msg">🌐 İnternet bağlantısı yok ve önbellekte veri bulunamadı.</div>`;
       return;
     }
   } else {
@@ -773,14 +810,14 @@ async function boot() {
 
   const isOnline = navigator.onLine;
   const cached   = loadCache();
-  const rawCache = getCacheRaw(); // ay değişse bile eski veri burada
+  const rawCache = getCacheRaw();
 
   if (cached) {
     // Cache geçerli (aynı ay) → göster
     clearBanner();
     await fetchAndRender(cached.ilceId, cached.ilceAdi, cached.sehirAdi, cached.ulkeAdi, true, cached.data);
 
-    // Arka planda güncelle
+    // Arka planda güncelle (stale-while-revalidate)
     if (isOnline) {
       try {
         const fresh = await fetchJSON(`${API}/vakitler/${cached.ilceId}`);
@@ -794,7 +831,7 @@ async function boot() {
     }
 
   } else if (rawCache && !isOnline) {
-    // Cache süresi dolmuş (ay değişti) AMA internet yok → eski veriyle göster + uyar
+    // Cache süresi dolmuş AMA internet yok → eski veriyle göster + uyar
     const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
     const now = new Date();
     showBanner('warn',
@@ -804,7 +841,6 @@ async function boot() {
     await fetchAndRender(rawCache.ilceId, rawCache.ilceAdi, rawCache.sehirAdi, rawCache.ulkeAdi, true, rawCache.data);
     setBadge(`Eski veri: ${months[rawCache.savedMonth]} ${rawCache.savedYear}`, true);
 
-    // İnternet gelince otomatik yenile
     window.addEventListener('online', async () => {
       clearBanner();
       try {
@@ -824,11 +860,17 @@ async function boot() {
     document.getElementById('locSelects').classList.add('hidden');
 
   } else {
-    // Hiç cache yok → konum seçtir
-    document.getElementById('prayerGrid').innerHTML = `<div class="loading"><div class="spinner"></div><div class="loading-text">Konum seçiniz</div></div>`;
-    document.getElementById('calendarWrap').innerHTML = `<div class="loading" style="padding:2rem"><div class="loading-text" style="font-size:0.8rem">Konum bekleniyor...</div></div>`;
+    // ③ Hiç cache yok → default olarak İstanbul/Fatih'i yükle, konum seçiciyi aç
+    fetchAndRender(DEFAULT_ILCE_ID, DEFAULT_ILCE_ADI, DEFAULT_SEHIR, DEFAULT_ULKE);
     document.getElementById('locSelects').classList.remove('hidden');
-    await loadUlkeler();
+
+    // ④ requestIdleCallback: konum listesini arka planda hazırla
+    // Kullanıcı "Değiştir"e bastığında seçenekler zaten yüklenmiş olacak
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => loadUlkeler(), { timeout: 3000 });
+    } else {
+      setTimeout(() => loadUlkeler(), 2000);
+    }
   }
 
   // Online/offline durum değişimlerini dinle
