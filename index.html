@@ -455,10 +455,17 @@
     <header>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.2rem;">
         <div class="arabic-title">مواقيت الصلاة</div>
-        <a href="zikir.html" style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.25);border-radius:10px;padding:.32rem .75rem;color:var(--muted);text-decoration:none;font-size:.72rem;font-family:'Outfit',sans-serif;letter-spacing:1px;transition:background .2s,border-color .2s,color .2s;white-space:nowrap;" onmouseover="this.style.background='rgba(201,168,76,0.13)';this.style.borderColor='rgba(201,168,76,0.45)';this.style.color='var(--accent)'" onmouseout="this.style.background='rgba(201,168,76,0.07)';this.style.borderColor='rgba(201,168,76,0.25)';this.style.color='var(--muted)'">
-          <span style="font-family:'Amiri',serif;font-size:.9rem;color:var(--accent)">الذكر</span>
-          Zikir
-        </a>
+        <div style="display:flex;gap:.4rem;">
+          <button id="notificationBtn" onclick="toggleNotifications()" style="
+            display:inline-flex;align-items:center;gap:.4rem;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.25);border-radius:10px;padding:.32rem .75rem;color:var(--muted);text-decoration:none;font-size:.72rem;font-family:'Outfit',sans-serif;letter-spacing:1px;transition:background .2s,border-color .2s,color .2s;white-space:nowrap;cursor:pointer;
+          " onmouseover="this.style.background='rgba(201,168,76,0.13)';this.style.borderColor='rgba(201,168,76,0.45)';this.style.color='var(--accent)'" onmouseout="this.style.background='rgba(201,168,76,0.07)';this.style.borderColor='rgba(201,168,76,0.25)';this.style.color='var(--muted)'">
+            🔕
+          </button>
+          <a href="zikir.html" style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.25);border-radius:10px;padding:.32rem .75rem;color:var(--muted);text-decoration:none;font-size:.72rem;font-family:'Outfit',sans-serif;letter-spacing:1px;transition:background .2s,border-color .2s,color .2s;white-space:nowrap;" onmouseover="this.style.background='rgba(201,168,76,0.13)';this.style.borderColor='rgba(201,168,76,0.45)';this.style.color='var(--accent)'" onmouseout="this.style.background='rgba(201,168,76,0.07)';this.style.borderColor='rgba(201,168,76,0.25)';this.style.color='var(--muted)'">
+            <span style="font-family:'Amiri',serif;font-size:.9rem;color:var(--accent)">الذكر</span>
+            Zikir
+          </a>
+        </div>
       </div>
     </header>
 
@@ -571,6 +578,8 @@ const PRAYER_NAMES = [
 
 let allVakitler = [];
 let countdownInterval = null;
+let lastNotifiedPrayer = null; // Son bildirilen vakit
+let notificationsEnabled = false; // Bildirim ayarı
 
 /* ─── CACHE ─── */
 function saveCache(ilceId, ilceAdi, sehirAdi, ulkeAdi, data) {
@@ -819,7 +828,8 @@ function startCountdown(data) {
       bigEl.textContent  = 'Yarın';
       nameEl.textContent = 'İmsak';
       subEl.textContent  = 'yeni gün';
-        return;
+      lastNotifiedPrayer = null; // Yeni güne geçince reset
+      return;
     }
     const diff = times[nextIdx] - cur;
     const hh = Math.floor(diff/3600);
@@ -828,6 +838,13 @@ function startCountdown(data) {
     bigEl.textContent  = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
     nameEl.textContent = PRAYER_NAMES[nextIdx].ar + '  ' + PRAYER_NAMES[nextIdx].tr;
     subEl.textContent  = hh > 0 ? `${hh} saat ${mm} dakika kaldı` : mm > 0 ? `${mm} dakika ${ss} saniye kaldı` : `${ss} saniye kaldı`;
+
+    // Vakit geldiğinde bildirim gönder (sadece bir kez)
+    if (diff <= 0 && lastNotifiedPrayer !== PRAYER_NAMES[nextIdx].key) {
+      notifyPrayer(PRAYER_NAMES[nextIdx].tr, vakit[PRAYER_NAMES[nextIdx].key]);
+      lastNotifiedPrayer = PRAYER_NAMES[nextIdx].key;
+    }
+
     renderPrayerCards(data);
   }
   tick();
@@ -882,6 +899,93 @@ function clearBanner() {
   document.getElementById('bannerArea').innerHTML = '';
 }
 
+/* ─── BİLDİRİM & TİTREŞİM ─── */
+async function requestNotificationPermission() {
+  if ('Notification' in window) {
+    const permission = await Notification.requestPermission();
+    return permission === 'granted';
+  }
+  return false;
+}
+
+function sendNotification(prayerName, prayerTime) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    const notification = new Notification(`${prayerName} Vakti`, {
+      body: `Şu an ${prayerTime} - Namaz vakti geldi!`,
+      icon: '/favicon.ico', // İsterseniz ikon ekleyin
+      tag: 'namaz-vakti' // Aynı tag ile önceki bildirimleri değiştir
+    });
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+  }
+}
+
+function vibrateDevice() {
+  if ('vibrate' in navigator) {
+    // Kısa titreşim: 200ms, sonra 100ms dur, sonra 200ms
+    navigator.vibrate([200, 100, 200]);
+  }
+}
+
+function notifyPrayer(prayerName, prayerTime) {
+  if (!notificationsEnabled) return; // Bildirim kapalıysa çık
+  sendNotification(prayerName, prayerTime);
+  vibrateDevice();
+}
+
+/* ─── AYARLAR ─── */
+function loadSettings() {
+  try {
+    const settings = JSON.parse(localStorage.getItem('namazSettings') || '{}');
+    notificationsEnabled = settings.notificationsEnabled !== false; // Varsayılan açık
+  } catch(e) {
+    notificationsEnabled = false;
+  }
+}
+
+function saveSettings() {
+  try {
+    const settings = { notificationsEnabled };
+    localStorage.setItem('namazSettings', JSON.stringify(settings));
+  } catch(e) {}
+}
+
+function toggleNotifications() {
+  if (!notificationsEnabled) {
+    // Açmak istiyor, izin iste
+    requestNotificationPermission().then(granted => {
+      notificationsEnabled = granted;
+      saveSettings();
+      updateNotificationButton();
+      if (granted) {
+        alert('Bildirimler açıldı! Namaz vakitlerinde bildirim alacaksınız.');
+      } else {
+        alert('Bildirim izni reddedildi. Tarayıcı ayarlarından izin verebilirsiniz.');
+      }
+    });
+  } else {
+    // Kapatmak istiyor
+    notificationsEnabled = false;
+    saveSettings();
+    updateNotificationButton();
+    alert('Bildirimler kapatıldı.');
+  }
+}
+
+function updateNotificationButton() {
+  const btn = document.getElementById('notificationBtn');
+  if (!btn) return;
+  if (notificationsEnabled) {
+    btn.innerHTML = '🔔';
+    btn.title = 'Bildirimleri kapat';
+  } else {
+    btn.innerHTML = '🔕';
+    btn.title = 'Bildirimleri aç';
+  }
+}
+
 /* ─── BOOT ─── */
 /* ─── HARD RESET ─── */
 async function hardReset() {
@@ -911,6 +1015,17 @@ async function hardReset() {
 }
 
 async function boot() {
+  // Ayarları yükle
+  loadSettings();
+
+  // Bildirim butonunu güncelle
+  updateNotificationButton();
+
+  // Eğer bildirim açık ise ve izin verilmemişse izin iste
+  if (notificationsEnabled && 'Notification' in window && Notification.permission === 'default') {
+    await requestNotificationPermission();
+  }
+
   // Service Worker kaydı
   if ('serviceWorker' in navigator) {
     // SW kaydı: ?v= parametresiyle cache versiyonu otomatik yönetilir

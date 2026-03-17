@@ -323,6 +323,14 @@ const DEFAULTS = [
 
 let S = {zikirler:[],activeId:null};
 
+/* ─── TİTREŞİM ─── */
+function vibrateDevice() {
+  if ('vibrate' in navigator) {
+    // Hafif titreşim: 50ms
+    navigator.vibrate(50);
+  }
+}
+
 function load(){
   try{
     const r=localStorage.getItem(KEY);
@@ -395,7 +403,7 @@ function renderBadge(z){
     z.totalEver>0?`Toplam: <em>${z.totalEver}</em> zikir${rounds>0?` · <em>${rounds}</em> tur`:''}`:''
 }
 
-function selectZ(id){S.activeId=id;save();render();}
+function selectZ(id){S.activeId=id;save();render();vibrateDevice();}
 
 let toastTimer=null;
 function showToast(msg){
@@ -413,6 +421,8 @@ function tap(){
   const btn=document.getElementById('tapBtn');
   const rpl=document.createElement('div');rpl.className='rpl';btn.appendChild(rpl);
   setTimeout(()=>rpl.remove(),520);
+  // Hafif titreşim ekle
+  vibrateDevice();
   if(z.count===z.target){
     btn.classList.add('cpulse');
     btn.addEventListener('animationend',()=>btn.classList.remove('cpulse'),{once:true});
@@ -425,6 +435,7 @@ function undoOne(){
   z.count--;z.totalEver=Math.max(0,z.totalEver-1);save();
   document.getElementById('ringNum').textContent=z.count;
   setRing(z.count,z.target);renderBadge(z);
+  vibrateDevice(); // Hafif titreşim
 }
 
 function resetCurrent(){
@@ -432,6 +443,7 @@ function resetCurrent(){
   z.count=0;save();
   document.getElementById('ringNum').textContent='0';
   setRing(0,z.target);
+  vibrateDevice(); // Hafif titreşim
 }
 
 /* HEDEF INLINE EDİTÖR */
